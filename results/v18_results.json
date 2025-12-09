@@ -1,0 +1,21 @@
+{
+  "combined_score": 227.9251085258372,
+  "correctness": 1.0,
+  "correct_datasets": 5,
+  "total_datasets": 5,
+  "avg_compression_ratio": 0.35610803076372743,
+  "char_savings_pct": 64.38919692362725,
+  "avg_token_ratio": 0.43232044198895025,
+  "token_savings_pct": 56.767955801104975,
+  "avg_time_ms": 0.05756378173828125,
+  "avg_compress_time_ms": 0.038366317749023444,
+  "avg_decompress_time_ms": 0.019197463989257816,
+  "performance_penalty": 0,
+  "total_original_chars": 5591,
+  "total_compressed_chars": 1991,
+  "total_original_tokens": 1448,
+  "total_compressed_tokens": 626,
+  "version": "v18",
+  "evaluated_at": "2025-12-09T17:37:48.654549",
+  "path": "versions/v18.py"
+}

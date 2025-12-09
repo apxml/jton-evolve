@@ -1,0 +1,5 @@
+# JSON Compressor for LLM Token Optimization
+# Requirements file for Python dependencies
+
+# For accurate token counting in evaluation
+tiktoken==0.12.0
