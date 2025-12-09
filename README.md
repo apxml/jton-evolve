@@ -183,6 +183,165 @@ The evolution process discovered:
 - **Aggressive Key Compression**: Compress ALL keys regardless of length (v22+)
 - **Smart Thresholds**: Dynamic compression based on data characteristics
 
+## Technical Details: Final Optimization Strategies
+
+After 32 generations of evolution, the algorithm discovered two distinct optimization peaks. Here's how they work:
+
+### JTON-Machine (v27-v31): Maximum Compression
+
+The machine-optimized format achieves **62.2% token reduction** through aggressive optimization:
+
+#### 1. **Ultra-Compact Key Mapping**
+All object keys are replaced with base62-encoded integers, regardless of length:
+```python
+# Before: {"product_id": 1, "name": "Product 1", "in_stock": true}
+# After:  {"0": 1, "1": "Product 1", "2": true}
+# Keys stored in header: {"m": {"product_id": "0", "name": "1", "in_stock": "2"}}
+```
+
+#### 2. **Multiple Numeric Packing Formats**
+Numbers are analyzed and packed using the most efficient format:
+
+| Format | Range | Bytes/Value | Prefix |
+|--------|-------|-------------|--------|
+| Unsigned 8-bit | 0-255 | 1 | `U` |
+| Signed 8-bit | -128 to 127 | 1 | `B` |
+| Unsigned 16-bit | 0-65535 | 2 | `V` |
+| Signed 16-bit | -32768 to 32767 | 2 | `H` |
+| Signed 32-bit | Other integers | 4 | `I` |
+| Scaled Float | Floats (2 decimals) | 2 | `F` |
+| Double | Other floats | 8 | `D` |
+
+Example:
+```python
+# IDs 1-100 → "U" + base64(bytes([1,2,3,...,100]))
+# Prices with 2 decimals → "F" + base64(scaled_shorts)
+```
+
+#### 3. **Boolean Bit-Packing**
+8 booleans packed per byte with count suffix:
+```python
+# [True, False, True, True, False, False, False, True]
+# → "T" + base64(byte with bits: 10110001) + "~8"
+```
+
+#### 4. **String Prefix Extraction**
+Detects common prefixes (min 2 chars) in string arrays:
+```python
+# ["user_alice", "user_bob", "user_charlie"]
+# → {"p": "user_", "x": ["alice", "bob", "charlie"]}
+```
+
+#### 5. **Columnar Array Format**
+Homogeneous object arrays converted to column-oriented storage:
+```python
+# Original: [{"id": 1, "name": "A"}, {"id": 2, "name": "B"}]
+# Compressed: {"a": 1, "k": ["0","1"], "d": [
+#   "U" + base64([1,2]),           # id column packed
+#   ["A", "B"]                      # name column
+# ]}
+```
+
+#### 6. **Pattern Detection**
+- **Sequential**: `[1,2,3,4,5]` → `{"s": 1, "d": 1, "n": 5}`
+- **Constant**: `[true,true,true]` → `{"c": true, "n": 3}`
+
+#### 7. **Smart Fallback**
+Returns original JSON if compression overhead exceeds savings.
+
+### JTON-Human (v8-v20, v22): Readable Compression
+
+The human-readable format achieves **56.8% token reduction** while maintaining structure:
+
+#### Differences from Machine Format:
+
+1. **Readable Prefixes**: Single-character type indicators
+   - `B` = signed byte array
+   - `H` = signed short array  
+   - `I` = signed int array
+   - `D` = double array
+   - `T` = boolean bit-packed
+   - `S` = base64-encoded string
+
+2. **Fewer Numeric Formats**: 4 formats instead of 7
+   - Signed 8-bit, 16-bit, 32-bit, or double
+   - No unsigned or scaled float optimization
+
+3. **Higher Thresholds**: 
+   - String encoding threshold: 20 chars (vs 15)
+   - No prefix extraction for strings
+   - Key compression for all keys
+
+4. **Same Core Techniques**:
+   - Columnar arrays for homogeneous objects
+   - Boolean bit-packing (8 per byte)
+   - Sequential/constant pattern detection
+   - Smart fallback to original
+
+### Example: Product Array Compression
+
+Given this data with 20 products (sequential IDs, sequential prices, constant booleans):
+```python
+data = {
+    "products": [
+        {"product_id": i, "name": f"Product {i}", "price": 10.0 + i, "in_stock": True}
+        for i in range(1, 21)
+    ]
+}
+```
+
+**Original JSON (1336 chars, 444 tokens):**
+```json
+{"products":[{"product_id":1,"name":"Product 1","price":11.0,"in_stock":true},{"product_id":2,"name":"Product 2","price":12.0,"in_stock":true},...]}
+```
+
+**JTON-Machine (302 chars, 130 tokens - 70.7% token reduction):**
+
+Intelligently detects patterns and uses the most efficient encoding:
+```json
+{"d":{"0":{"a":1,"k":["1","2","3","4"],"d":[{"s":1,"d":1,"n":20},{"p":"Product ","x":["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20"]},{"s":11.0,"d":1.0,"n":20},{"c":true,"n":20}]}},"m":{"products":"0","product_id":"1","name":"2","price":"3","in_stock":"4"}}
+```
+- **Product IDs**: Sequential pattern `{"s":1,"d":1,"n":20}` (start=1, delta=1, count=20)
+- **Names**: String prefix extraction `{"p":"Product ","x":["1","2",..."20"]}`
+- **Prices**: Sequential floats `{"s":11.0,"d":1.0,"n":20}`
+- **Booleans**: Constant value `{"c":true,"n":20}`
+
+**JTON-Human (441 chars, 165 tokens - 62.8% token reduction):**
+```json
+{"d":{"0":{"a":1,"k":["1","2","3","4"],"d":[{"s":1,"d":1,"n":20},["Product 1","Product 2","Product 3","Product 4","Product 5","Product 6","Product 7","Product 8","Product 9","Product 10","Product 11","Product 12","Product 13","Product 14","Product 15","Product 16","Product 17","Product 18","Product 19","Product 20"],{"s":11.0,"d":1.0,"n":20},{"c":true,"n":20}]}},"m":{"products":"0","product_id":"1","name":"2","price":"3","in_stock":"4"}}
+```
+- Human-readable with full product names instead of prefix extraction
+
+**When data has no patterns, JTON-Machine uses binary encoding:**
+```json
+{"d":{"0":{"a":1,"k":["1","2","3","4"],"d":["UAQUDCAIPBx...",{"p":"Product ","x":[...]},"DAAAA...==","TrbUG~20"]}},"m":{...}}
+```
+- Integers → Base64-encoded binary (prefix `U`, `B`, `V`, `H`, `I`, `F`, or `D`)
+- Booleans → Bit-packed (8 bools per byte)
+
+### When JTON Excels
+
+✅ **Best Cases (70-80% reduction):**
+- Arrays of 10+ similar objects
+- Repeated keys/structures
+- Numeric sequences or patterns
+- Boolean flags in arrays
+- API responses with consistent schemas
+
+❌ **Poor Cases (0% reduction, returns original):**
+- Small objects (<5 fields)
+- Highly variable structures
+- Unique string values
+- Deep nesting without repetition
+
+### Performance Characteristics
+
+Both formats maintain:
+- **100% correctness** (perfect reconstruction)
+- **Sub-millisecond** compression/decompression
+- **Memory efficient** (streaming-compatible design)
+- **No dependencies** beyond Python stdlib
+
 ## The AlphaEvolve Methodology
 
 This project demonstrates using LLMs to automatically evolve algorithms through iterative improvement:
