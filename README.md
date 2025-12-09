@@ -154,6 +154,12 @@ Through 32 generations, the LLM discovered increasingly sophisticated strategies
 | **v22-v25** | 230.75 | 57.5% | Binary encoding + bit-packing |
 | **v27-v31** | 244.28 | **62.2%** | **Maximum optimization achieved** |
 
+### Evolution Progress
+
+![JTON Evolution Progress](https://raw.githubusercontent.com/apxml/jton-evolve/refs/heads/main/chart.jpg)
+
+*Chart showing the improvement in compression performance across all 32 generations of evolution*
+
 ### Full Results (Top Performers)
 
 ```
