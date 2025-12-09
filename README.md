@@ -1,6 +1,6 @@
 # JTON - JSON Token Optimized Notation
 
-**JTON** (JSON Token Optimized Notation) is an LLM-evolved compression format that minimizes token count for AI consumption. Through 32 generations of evolution using the AlphaEvolve methodology, we achieved **62.2% token savings** while maintaining perfect correctness.
+**JTON** (JSON Token Optimized Notation) is an LLM-evolved compression format that minimizes token count for AI consumption. Through 32 generations of evolution using the AlphaEvolve methodology, JTON achieved **62.2% token savings** while maintaining perfect correctness.
 
 Available in two formats:
 - **Human-Readable**: 57.5% token reduction with readable structure
@@ -120,11 +120,11 @@ Evaluate any version from the evolutionary process:
 python evolve.py evaluate v27
 ```
 
-This will:
-1. Load the version from `versions/v27.py`
-2. Test it on multiple diverse datasets
-3. Calculate compression metrics and token savings
-4. Save results to `results/v27_results.json`
+The evaluation:
+1. Loads the version from `versions/v27.py`
+2. Tests it on multiple diverse datasets
+3. Calculates compression metrics and token savings
+4. Saves results to `results/v27_results.json`
 
 ### Compare All Versions
 
@@ -350,7 +350,7 @@ This project demonstrates using LLMs to automatically evolve algorithms through 
 2. **Evaluate**: Test on diverse datasets and measure performance
 3. **Evolve**: LLM generates improved version based on results and code analysis
 4. **Compare**: Rank all versions to identify best approaches
-5. **Iterate**: Repeat until convergence or breakthrough discoveries
+5. **Iterate**: Repeat until convergence or breakthrough discoveries occur
 
 ### Evaluation Metrics
 
@@ -447,7 +447,7 @@ You can use **AI coding agents** like GitHub Copilot, Cursor, Windsurf, or any A
    python evolve.py compare
    ```
 
-2. **Ask your AI agent** to create and improve the next version:
+2. **Ask the AI agent** to create and improve the next version:
    ```
    @workspace Create versions/v33.py by copying v32.py and improve the compression algorithm.
    
@@ -455,7 +455,7 @@ You can use **AI coding agents** like GitHub Copilot, Cursor, Windsurf, or any A
    - v27-v31: 62.2% token savings, 244.28 score
    - v22: 57.5% token savings (best readable)
    
-   Try to discover new compression strategies that could beat 62.2%. Some ideas:
+   Potential new compression strategies that could beat 62.2%:
    - Better string prefix detection
    - Value dictionaries for repeated strings
    - More efficient encoding schemes
@@ -478,14 +478,14 @@ You can use **AI coding agents** like GitHub Copilot, Cursor, Windsurf, or any A
 
 #### Manual Iteration (Optional)
 
-If you prefer manual control or want to use the terminal:
+For manual control or terminal usage:
 
 1. **Create new version**:
    ```bash
    python evolve.py new  # Creates v33.py from v32.py
    ```
 
-2. **Edit the file** with your preferred editor and implement improvements
+2. **Edit the file** with a preferred editor and implement improvements
 
 3. **Test and compare**:
    ```bash
@@ -497,9 +497,9 @@ If you prefer manual control or want to use the terminal:
 
 - **Try wild ideas**: Some breakthroughs (like v8's binary packing) came from bold changes
 - **Watch the metrics**: Token savings is the main metric, but balance with performance
-- **Don't fear failure**: Many versions won't improve - that's part of evolution!
+- **Embrace failure**: Many versions won't improve - that's part of evolution!
 - **Test correctness**: Always verify `python test_compressor.py` passes
-- **Focus on patterns**: Look at which datasets compress poorly and target them
+- **Focus on patterns**: Identify which datasets compress poorly and target them
 
 ### Main Insights from Evolution
 
@@ -641,8 +641,3 @@ This project demonstrates the AlphaEvolve methodology for algorithm optimization
 ## License
 
 This project is provided as-is for educational use.
-
----
-
-**JTON - JSON Token Optimized Notation**  
-*Generated through 32 generations of LLM-driven evolution • Maximum token reduction: 62.2% • Perfect correctness maintained*
